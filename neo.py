@@ -109,17 +109,24 @@ def get_saves():
     return saves
 
 def get_load_page(screen, number):
-    # TODO: Go in reverse order (latest first) and add option to make reverse=True in sort for menu()
+    # Get rows and subtract 4 (headers, etc.)
     amount = screen.getmaxyx()[0] - 4
+    # Make the page
     page = []
+    # Get all the saves
     saves = get_saves()
-    start = ((number - 1) * amount) + 1
-    while len(page) < amount and start <= len(saves):
-    #for i in range(((number - 1) * amount) + 1, (number * amount) + 1):
-        #if len(saves) < i: break
-        if start not in saves: continue
+    # Figure out when the last page ended
+    last_end = amount * (number + 1) # Should be greater than this page's start
+    # Figure out when the next page will start
+    next_start = max(amount * (number - 1), 0) # Should be less than this page's end
+    # Determine when this page should start
+    start = len(saves) - next_start
+    while len(page) < amount and start <= len(saves) and start <= last_end and start > 0:
+        if start not in saves:
+            start -= 1
+            continue
         page.append(saves[start])
-        start += 1
+        start -= 1
     return page
 
 def get_max_page(screen):
@@ -157,7 +164,7 @@ def load_game_menu(screen):
         screen, tasks, header=[
             "Page {} of {} ({} save{}).".format(page, get_max_page(screen), all_saves, "" if all_saves == 1 else "s"),
             "Choose a game to restore. Use n (next) or p (previous)"
-        ]
+        ], reverse=True
     )
 
 def load_game(screen, number):
@@ -253,7 +260,7 @@ def get_last_save_number():
     with open(metadata_path, 'r') as f:
         return loads(f.read())['last_save_number']
 
-def menu(screen, tasks, header=None):
+def menu(screen, tasks, header=None, reverse=False):
     if not header: header = []
     task = None
     args = (screen,)
@@ -265,7 +272,7 @@ def menu(screen, tasks, header=None):
                 addstr(screen, "{}".format(item[0]), item[1])
             else:
                 addstr(screen, "{}".format(item))
-        for k in sorted(tasks, key=lambda k: int(k) if str(k).isdigit() else float('-inf')):
+        for k in sorted(tasks, key=lambda k: int(k) if str(k).isdigit() else float('-inf'), reverse=reverse):
         #for k, v in tasks.items():
             v = tasks[k]
             if k is None or v[0] is None: continue
