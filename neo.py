@@ -115,13 +115,11 @@ def get_load_page(screen, number):
     page = []
     # Get all the saves
     saves = get_saves()
-    # Figure out when the last page ended
-    last_end = amount * (number + 1) # Should be greater than this page's start
     # Figure out when the next page will start
     next_start = max(amount * (number - 1), 0) # Should be less than this page's end
     # Determine when this page should start
     start = len(saves) - next_start
-    while len(page) < amount and start <= len(saves) and start <= last_end and start > 0:
+    while len(page) < amount and start <= len(saves) and start > 0:
         if start not in saves:
             start -= 1
             continue
